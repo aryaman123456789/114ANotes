@@ -1,0 +1,25 @@
+-- Welcome to Elsa!
+-- this is a comment in Elsa (and in Haskell)
+
+-- An Elsa program starts with *definitions*.
+
+let IDENTITY = \x -> x
+let TRUE     = \x -> (\y -> x)
+let FALSE    = \x -> (\y -> y)
+let ITE      = \b -> (\x -> (\y -> (b x) y))
+
+-- Then, you have some *reductions*.
+
+eval example_1 :
+    IDENTITY (\y -> y)       -- The expression we're starting with
+    =d> (\x -> x) (\y -> y)  -- After expanding definitions with =d>
+    =b> (\y -> y)            -- After doing substitution with =b>
+
+-- This won't work because we failed to expand a definition.
+eval example_2 :
+    IDENTITY (\y -> y)       -- The expression we're starting with
+    =b> (\y -> y)            -- After doing substitution with =b>
+
+-- Play with this one on your own!
+eval example_3 :
+    ((ITE TRUE) FALSE) IDENTITY -- this expression means "if TRUE, then FALSE, else IDENTITY", and should evaluate to FALSE
