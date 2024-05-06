@@ -1,0 +1,100 @@
+-- Lecture 4!
+
+let ID = \x -> x
+
+-- Takes a boolean (or something that evaluates to one)
+-- and two "branches", and applies the boolean to the branches!
+let ITE      = \b x y -> b x y
+
+-- Let's talk numbers!
+let ZERO  = \s z -> z
+let ONE   = \s z -> s z
+let TWO   = \s z -> s (s z)
+let THREE = \s z -> s (s (s z))
+
+-- If numbers are encoded like that, we should be able to write
+-- a function that gives us the *successor* of a number.
+
+-- Whatever n was, we know that we need to get back something that wraps another call to s
+-- around its body.  So that's what we do!
+let SUC   = \n -> (\s z -> s (n s z))
+
+-- What about ADD?
+-- If we have a number, say TWO, and we want to add a number to it, say ONE,
+-- we need to take the successor of TWO, ONE time.
+let ADD   = \n m -> n SUC m
+
+-- Today, let's talk about: pairs, why ADD is defined how it is, recursion.
+
+-- Pairs!
+-- Typical PLs give you something like tuples, records, structs, ...
+-- How do we get that in lambda calculus?
+
+-- We need the following API: 
+-- A way to define a pair
+-- One way to think of a pair (in terms of what we've already done):
+-- A pair is just something that lets you pick its left or right component!
+let PAIR   = \l r -> (\b -> ITE b l r)
+-- This is equivalent, but I think the above is clearer!
+-- let PAIR   = \l r b -> ITE b l r
+
+-- A way to get the first element of a pair
+let FST    = \p -> p TRUE
+
+-- A way to get the second element of a pair
+let SND    = \p -> p FALSE
+
+-- What about recursion, but in a helpful way that actually terminates?
+
+-- What would it take to write a recursive function?
+-- How about summing up the natural numbers up to N?
+-- SUM THREE =*> SIX (3 + 2 + 1)
+-- SUM FOUR  =*> TEN (4 + 3 + 2 + 1)
+
+-- We *wish* we could write this.  But we can't.  Why not?
+-- We can't refer to SUM inside SUM.
+-- (We would also need definitions for ISZ and DECR, which are hw0 problems.)
+let SUM = \n -> ITE (ISZ n)
+                    ZERO
+                    ADD n (SUM (DECR n))
+
+-- Next Tuesday, let's solve this problem using the Y combinator!
+
+eval pair_example :
+  SND (PAIR ONE TWO) -- What do we expect to get? TWO.
+  =d> (\p -> p FALSE) (PAIR ONE TWO)
+  =b> (PAIR ONE TWO) FALSE
+  =d> ((\l r -> (\b -> ITE b l r)) ONE TWO) FALSE
+  =b> ((\r -> (\b -> ITE b ONE r)) TWO) FALSE
+  =b> (\b -> ITE b ONE TWO) FALSE
+  =b> ITE FALSE ONE TWO -- If this is confusing, come talk to me at office hours or go to tutoring! :)
+  =*> TWO
+
+eval add_two_and_one :
+  ADD TWO ONE
+  =d> (\n m -> n SUC m) TWO ONE
+  =b> (\m -> TWO SUC m) ONE
+  =b> TWO SUC ONE
+  =d> (\s z -> s (s z)) SUC ONE
+  =b> (\z -> SUC (SUC z)) ONE
+  =b> SUC (SUC ONE)
+  =*> \s z -> s (s (s z)) -- I'll let Elsa do this part!
+  =d> THREE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
