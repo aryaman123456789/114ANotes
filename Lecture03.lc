@@ -1,0 +1,96 @@
+-- Lecture 3!  
+
+let ID = \x -> x
+
+let TRUE     = \x y -> x -- Takes two arguments, returns the first
+let FALSE    = \x y -> y -- Takes two arguments, returns the second
+
+-- Takes a boolean (or something that evaluates to one)
+-- and two "branches", and applies the boolean to the branches!
+let ITE      = \b x y -> b x y
+
+-- Let's talk numbers!
+let ZERO  = \s z -> z
+let ONE   = \s z -> s z
+let TWO   = \s z -> s (s z)
+let THREE = \s z -> s (s (s z))
+
+-- If numbers are encoded like that, we should be able to write
+-- a function that gives us the *successor* of a number.
+let SUC   = \n -> (\s z -> s (n s z))
+let ADD   = \n m -> n SUC m
+
+-- One thing I want to show is syntactic sugar for 
+-- functions that take multiple arguments.
+
+-- If we could only take one argument at a time,
+-- it would look like this:
+eval one_at_a_time :
+  ((\x -> (\y -> x)) ID) ID
+  =b> (\y -> ID) ID
+  =b> ID
+
+-- Elsa lets us have some nice syntactic sugar
+-- for taking multiple arguments.
+-- We still have to pass the arguments in one at a time using =b>,
+-- but the program is a little easier to read.
+eval two_at_once :
+  (\x y -> x) ID ID
+  =b> (\y -> ID) ID
+  =b> ID
+  
+-- In general, \x -> (\y -> z) can be written as \x y -> z.
+-- And then, if you call a function defined this way,
+-- you can simply write `f apple orange` instead of `(f apple) orange`.
+
+eval another_example :
+  ((\f -> \a -> (f a)) (\x -> x)) (\s -> s s)
+  =b> (\a -> ((\x -> x) a)) (\s -> s s)
+  =b> (\x -> x) (\s -> s s)
+  =b> (\s -> s s)
+
+eval another_example_with_sugar :
+  (\f a -> f a) (\x -> x) (\s -> s s)
+  =b> (\a -> (\x -> x) a) (\s -> s s)
+  =b> (\x -> x) (\s -> s s)
+  =b> \s -> s s
+
+eval boolean_example1 :
+  ITE TRUE ID FALSE  -- "if TRUE, then ID, else FALSE"
+  =d> (\b x y -> b x y) TRUE ID FALSE
+  =b> (\x y -> TRUE x y) ID FALSE
+  =b> (\y -> TRUE ID y) FALSE
+  =b> TRUE ID FALSE
+  =d> (\x y -> x) ID FALSE
+  =b> (\y -> ID) FALSE
+  =b> ID -- That's what we hoped this would evaluate to! Yay!
+
+eval boolean_example2 :
+  ITE FALSE TRUE FALSE  -- "if FALSE, then TRUE, else FALSE"
+  =d> (\b x y -> b x y) FALSE TRUE FALSE
+  =b> (\x y -> FALSE x y) TRUE FALSE
+  =b> (\y -> FALSE TRUE y) FALSE
+  =b> FALSE TRUE FALSE
+  =d> (\x y -> y) TRUE FALSE
+  =b> (\y -> y) FALSE
+  =b> FALSE -- That's what we wanted.
+
+  eval increment_one :
+  SUC ONE
+  =d> (\n -> (\s z -> s (n s z))) ONE
+  =b> (\s z -> s (ONE s z))
+  =d> (\s z -> s ((\s z -> s z) s z))
+  =b> (\s z -> s ((\z -> s z) z))
+  =b> \s z -> s (s z)
+  =d> TWO
+
+eval add_two_and_one :
+  ADD TWO ONE
+  =d> (\n m -> n SUC m) TWO ONE
+  =b> (\m -> TWO SUC m) ONE
+  =b> TWO SUC ONE
+  =d> (\s z -> s (s z)) SUC ONE
+  =b> (\z -> SUC (SUC z)) ONE
+  =b> SUC (SUC ONE)
+  =*> \s z -> s (s (s z)) -- I'll let Elsa do this part!
+  =d> THREE
