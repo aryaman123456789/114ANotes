@@ -1,0 +1,62 @@
+-- Recursion in lambda calc
+
+    -- Church numerals
+    let ZERO = \f x -> x
+    let ONE = \f x -> f x
+    let TWO = \f x -> f (f x)
+
+    let THREE = \f x-> f (f (f x)) 
+    let FOUR = \f x-> f (f (f (f x))) 
+    let FIVE = \f x-> f (f (f (f (f x))))
+    -- Booleans 
+    let TRUE = \x y-> x 
+    let FALSE = \x y-> y 
+    let ITE = \b x y-> b x y
+    -- Arithmetic 
+    let SUC = \n f x-> f (n f x) 
+    let ADD = \n m-> n SUC m
+    -- The definitions of DECR, SUB, and ISZ are elided-- but you can still use them: 
+    let DECR = \n-> -- (decrement n by one) 
+    let SUB = \n m-> -- (subtract m from n) 
+    let ISZ = \n-> -- (return TRUE if n == 0 and FALSE otherwise)
+
+    -- Note: Since ZERO is the smallest Church numeral,
+    -- calls to DECR and SUB bottom out at ZERO.
+    -- For example, DECR ZERO evaluates to ZERO,
+    -- and SUB TWO THREE evaluates to ZERO.
+
+    -- The Y combinator 
+    let Y = \step-> (\x-> step (x x)) (\x-> step (x x))
+
+    -- What do we wish we could write to define FIB?
+    let FIB = \n -> ITE (ISZ n)
+                        ZERO 
+                        (ITE (ISZ (DECR n)) 
+                            ONE 
+                            (ADD (FIB (SUB n ONE)) (FIB (SUB n TWO))))
+    -- ^ THIS does not work because FIB has technically not been defined yet within its own function (FIB can't be called within FIB)
+
+    let FIB1 = \rec -> \n -> ITE (ISZ n) --part 3a would be (ISZ n)
+                        ZERO -- this would be for part 3b
+                        (ITE (ISZ (DECR n)) -- lines 41 to 43 would be part 3c ("if n - 1 = 0, then return ONE, 
+                            ONE -- else recursively call "rec" on (n-1) + (n-2))
+                            (ADD (rec (SUB n ONE)) (rec (SUB n TWO))))
+
+    let FIB = Y FIB1 -- part d uses the Y combinator which accomplishes the recursion
+    -- ^ THIS works now :)
+
+-- Bound and Free variables
+
+    \x -> \y -> \z -> x (\y -> z (\z -> w z)) y
+    -- \x is bound by x
+    -- \z on the outside is bound by z on the outside
+    -- \z on the inside is bound by z on the inside
+    -- \y on the outside is bound by y all the way on the outside
+    -- w is a free variable
+
+    (\p q r -> (p (\q p -> (r q))) (q p))
+    -- the \p on the outside is bound by p on the inside AND the outside 
+    -- \q is bound by \q, both on the inside
+    -- \q is bound by \q, both on the outermost
+    -- \r is bound by r on the inside
+
